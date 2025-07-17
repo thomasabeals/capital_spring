@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant M&A Analyzer - CapitalSpring</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="brand-header">
+                <img src="capital_spring_logo.png" alt="CapitalSpring" class="company-logo">
+                <div class="title-section">
+                    <h1 class="main-title">Restaurant M&A Target Analyzer</h1>
+                    <p class="subtitle">Powered by CapitalSpring - Sector-focused private equity for restaurant businesses</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- API Configuration Section -->
+        <section class="search-section">
+            <h2> API Configuration</h2>
+            <div class="form-group">
+                <label for="apiKey">Google Places API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter your Google Places API key">
+                <small style="color: #6c757d; margin-top: 5px;">Your API key is stored locally and never transmitted to external servers</small>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <h2>🔍 M&A Target Search</h2>
+            <div class="search-form">
+                <div class="search-row">
+                    <div class="form-group">
+                        <label for="searchQuery">Search Query</label>
+                        <input type="text" id="searchQuery" placeholder="e.g., Italian restaurants, Pizza franchise, Fast casual burger">
+                    </div>
+                    <div class="form-group">
+                        <label for="searchLocation">Location (or Zip Code)</label>
+                        <input type="text" id="searchLocation" placeholder="e.g., New York, NY or 10001" value="27601">
+                    </div>
+                    <div class="form-group">
+                        <label for="searchRadius">Radius (meters)</label>
+                        <select id="searchRadius">
+                            <option value="5000">5km</option>
+                            <option value="25000">25km</option>
+                            <option value="50000" selected>50km</option>
+                            <option value="100000">100km</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button id="searchBtn" class="btn-primary">Search Targets</button>
+                    </div>
+                </div>
+                
+                <!-- PRESET BUTTONS REMOVED TO CLEAN UP INTERFACE -->
+                <!-- <div class="search-presets">
+                    <div class="preset-btn" data-query="Italian restaurant franchise">🍝 Italian Franchises</div>
+                    <div class="preset-btn" data-query="Fast casual burger">🍔 Fast Casual Burgers</div>
+                    <div class="preset-btn" data-query="Pizza restaurant chain">🍕 Pizza Chains</div>
+                    <div class="preset-btn" data-query="Mexican fast food">🌮 Mexican Fast Food</div>
+                    <div class="preset-btn" data-query="Asian restaurant franchise">🍜 Asian Franchises</div>
+                    <div class="preset-btn" data-query="Coffee shop franchise">☕ Coffee Franchises</div>
+                    <div class="preset-btn" data-query="Sandwich shop franchise">🥪 Sandwich Shops</div>
+                    <div class="preset-btn" data-query="Family restaurant chain">👨‍👩‍👧‍👦 Family Dining</div>
+                </div> -->
+            </div>
+        </section>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <h2>Target Filters</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="nameFilter">Restaurant Name:</label>
+                    <input type="text" id="nameFilter" placeholder="Filter by name..." class="name-filter-input">
+                    <button onclick="window.app.uiController.applyNameFilter()" class="apply-filter-btn">🔍</button>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="minRating">Minimum Rating</label>
+                    <select id="minRating">
+                        <option value="0">Any Rating</option>
+                        <option value="3.5">3.5+ Stars</option>
+                        <option value="4.0" selected>4.0+ Stars</option>
+                        <option value="4.5">4.5+ Stars</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="minReviews">Minimum Reviews</label>
+                    <select id="minReviews">
+                        <option value="0">Any Count</option>
+                        <option value="100">100+ Reviews</option>
+                        <option value="500" selected>500+ Reviews</option>
+                        <option value="1000">1000+ Reviews</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="priceLevel">Price Level</label>
+                    <select id="priceLevel">
+                        <option value="all">All Price Levels</option>
+                        <option value="1">$ (Budget)</option>
+                        <option value="2" selected>$$ (Moderate)</option>
+                        <option value="3">$$$ (Expensive)</option>
+                        <option value="4">$$$$ (Very Expensive)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="businessStatus">Business Status</label>
+                    <select id="businessStatus">
+                        <option value="all">All Status</option>
+                        <option value="OPERATIONAL" selected>Operational Only</option>
+                        <option value="CLOSED_TEMPORARILY">Temporarily Closed</option>
+                        <option value="CLOSED_PERMANENTLY">Permanently Closed</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button id="applyFilters" class="btn-primary">Apply Filters</button>
+                    <button id="resetFilters" class="btn-secondary">Reset</button>
+                    <button id="exportExcel" class="btn-secondary">Export to Excel</button>
+                </div>
+            </div>
+            
+            <!-- Search Status Display -->
+            <div id="searchStatus" class="search-status" style="display: none;"></div>
+        </section>
+
+        <!-- Analysis Dashboard -->
+        <section class="dashboard-section">
+            <h2> Analysis Dashboard</h2>
+            
+            <!-- Key Metrics Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Targets</h3>
+                    <div class="metric-value" id="totalTargets">0</div>
+                    <div class="metric-label">Restaurants</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>Average Rating</h3>
+                    <div class="metric-value" id="avgRating">0.0</div>
+                    <div class="metric-label">Stars</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>Total Reviews</h3>
+                    <div class="metric-value" id="totalReviews">0</div>
+                    <div class="metric-label">Reviews</div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>Avg Price Level</h3>
+                    <div class="metric-value" id="avgPrice">$$</div>
+                    <div class="metric-label">Price Range</div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="map-container">
+                    <h3>Restaurant Locations</h3>
+                    <div id="restaurantMap"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Targets Table -->
+        <section class="targets-section">
+            <h2> Top Acquisition Targets</h2>
+            
+            <div class="table-container">
+                <table id="targetsTable">
+               <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Restaurant Name</th>
+                        <th>Rating</th>
+                        <th>Reviews</th>
+                        <th>Price Level</th>
+                        <th>Status</th>
+                        <th>M&A Score</th>
+                        <th>Address</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                        <tbody id="targetsTableBody">
+                        <tr>
+                            <td colspan="9" class="loading">Search for restaurants to see potential M&A targets</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="capitalspring-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <img src="capital_spring_logo.png" alt="CapitalSpring" class="footer-logo">
+                    <p>Sector-focused private equity and debt investment firm</p>
+                </div>
+                <div class="footer-right">
+                    <p>Specializing in foodservice and franchised restaurant businesses</p>
+                    <p>© 2025 CapitalSpring. Professional M&A analysis tools.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Google Maps API - we'll load this later with dynamic API key -->
+    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOEyXCaYMjwd2-y81wrHThZ_Sp8dJ4KuQ&callback=initMap"></script> -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOEyXCaYMjwd2-y81wrHThZ_Sp8dJ4KuQ&libraries=places&callback=initMap"></script>
+    <!-- Our modular JavaScript files - we'll add these later -->
+    
+    <script src="js/config.js"></script>
+    <script src="js/api_client.js"></script>
+    <script src="js/data_analyzer.js"></script>
+    <script src="js/map_manager.js"></script>
+    <script src="js/ui_controller.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
