@@ -24,6 +24,11 @@ PRICE_LEVELS = {
     4: '$$$$'
 }
 
+# Health check routes
+@app.route('/')
+def health_check():
+    return 'Capital Spring API is running!', 200
+
 def search_restaurants(query, location="", max_results=60):
     """Enhanced search with pagination support for up to 60 results"""
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
@@ -471,4 +476,4 @@ def places():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'healthy', 'message': 'M&A Dashboard API is running'})
+    return {'status': 'healthy', 'service': 'capital_spring_api'}, 200
