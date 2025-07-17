@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Need to install: pip install flask-cors
 import requests
 import time
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 logger.info("=== STARTING FLASK APP ===")
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.', static_folder='.')
 CORS(app)  # Enable CORS for all routes
 
 # Your Google API Key here (keep it secret!)
@@ -40,9 +40,9 @@ PRICE_LEVELS = {
 
 # Health check routes
 @app.route('/')
-def health_check():
-    logger.info("Health check route accessed!")
-    return 'Capital Spring API is running!', 200
+def index():
+    logger.info("Index page accessed!")
+    return render_template('index.html')
 
 def search_restaurants(query, location="", max_results=60):
     """Enhanced search with pagination support for up to 60 results"""
