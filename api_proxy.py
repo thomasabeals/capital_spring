@@ -4,6 +4,20 @@ import requests
 import time
 import os
 from urllib.parse import urlparse
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+logger.info("=== STARTING FLASK APP ===")
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -27,6 +41,7 @@ PRICE_LEVELS = {
 # Health check routes
 @app.route('/')
 def health_check():
+    logger.info("Health check route accessed!")
     return 'Capital Spring API is running!', 200
 
 def search_restaurants(query, location="", max_results=60):
@@ -476,4 +491,5 @@ def places():
 
 @app.route('/health')
 def health():
+    logger.info("Health route accessed!")
     return {'status': 'healthy', 'service': 'capital_spring_api'}, 200
