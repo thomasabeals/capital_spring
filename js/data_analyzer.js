@@ -15,20 +15,11 @@ class MATargetAnalyzer {
 
     /**
      * Set the API client for fetching additional data
-     * @param {GooglePlacesAPI} apiClient - Initialized API client
+     * @param {RestaurantAPIClient} apiClient - Initialized API client
      */
     setApiClient(apiClient) {
         this.api = apiClient;
         console.log('API client connected to analyzer');
-    }
-
-    /**
-     * Set API key and create API client
-     * @param {string} apiKey - Google Places API key
-     */
-    setApiKey(apiKey) {
-        this.api = new GooglePlacesAPI(apiKey);
-        console.log('API key set for analyzer');
     }
 
     /**

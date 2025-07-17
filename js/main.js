@@ -71,29 +71,18 @@ class RestaurantMAApp {
     }
 
     /**
-     * Initialize API client from saved settings
+     * Initialize API client - no API key needed for Flask backend
      */
     initializeApiClient() {
-        const savedApiKey = localStorage.getItem(CONFIG.STORAGE_KEYS.API_KEY);
-        if (savedApiKey) {
-            this.setApiKey(savedApiKey);
-        }
-    }
-
-    /**
-     * Set API key for all components
-     * @param {string} apiKey - Google Places API key
-     */
-    setApiKey(apiKey) {
-        console.log('Setting API key for application');
+        console.log('Initializing API client for Flask backend');
         
-        // Set API key for analyzer
-        this.analyzer.setApiKey(apiKey);
+        // Initialize API client without API key
+        this.apiClient = new RestaurantAPIClient();
         
-        // Store reference to API client
-        this.apiClient = this.analyzer.api;
+        // Set API client for analyzer
+        this.analyzer.setApiClient(this.apiClient);
         
-        console.log('API key configured for all components');
+        console.log('API client initialized for Flask backend');
     }
 
     /**
@@ -104,7 +93,7 @@ class RestaurantMAApp {
         console.log('Performing restaurant search:', searchParams);
         
         if (!this.apiClient) {
-            throw new Error('API client not initialized. Please set your API key first.');
+            throw new Error('API client not initialized.');
         }
 
         try {
@@ -422,19 +411,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.app = app;
 });
 
-// Global callback for Google Maps API (when it loads)
-window.initMap = function() {
-    console.log('Google Maps API loaded');
-    
-    if (app && !app.mapManager.isInitialized) {
-        app.initializeMap();
-    }
-    
-    // Also reinitialize API client if needed
-    if (app && app.analyzer && app.analyzer.api) {
-        app.analyzer.api.initializeServices();
-    }
-};
+// Map functionality disabled - using Flask backend instead of Google Maps API
+// The initMap callback has been removed since we're not loading Google Maps API
+console.log('Map functionality disabled - using Flask backend proxy instead of direct Google Maps API');
 
 // Global function for restaurant details (called from map info windows)
 window.viewRestaurantDetails = function(placeId) {

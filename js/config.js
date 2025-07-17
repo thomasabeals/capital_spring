@@ -4,14 +4,14 @@
  */
 
 const CONFIG = {
-    // API Configuration
-    GOOGLE_MAPS_API_KEY: '', // Will be set dynamically from user input
+    // API Configuration - No direct Google API key needed in frontend
     
-    // API Endpoints
+    // Flask API Endpoints (your backend proxy)
     ENDPOINTS: {
-        PLACES_SEARCH: 'https://maps.googleapis.com/maps/api/place/textsearch/json',
-        PLACE_DETAILS: 'https://maps.googleapis.com/maps/api/place/details/json',
-        GEOCODING: 'https://maps.googleapis.com/maps/api/geocode/json'
+        SEARCH_RESTAURANTS: '/search_restaurants',
+        GEOCODE: '/geocode',
+        PLACES: '/places',
+        HEALTH: '/health'
     },
     
     // Default Settings
@@ -101,18 +101,16 @@ const CONFIG = {
     
     // Local Storage Keys
     STORAGE_KEYS: {
-        API_KEY: 'googlePlacesApiKey',
         SEARCH_HISTORY: 'searchHistory',
         USER_PREFERENCES: 'userPreferences'
     },
     
     // UI Messages
     MESSAGES: {
-        NO_API_KEY: 'Please enter your Google Places API key first',
         NO_SEARCH_QUERY: 'Please enter a search query',
         SEARCH_IN_PROGRESS: 'Searching for restaurants...',
         NO_RESULTS: 'No restaurants match the current filters',
-        SEARCH_FAILED: 'Search failed. Please check your API key and try again.',
+        SEARCH_FAILED: 'Search failed. Please try again.',
         DETAILS_FAILED: 'Failed to load restaurant details'
     },
     

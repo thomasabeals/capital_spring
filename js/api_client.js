@@ -1,23 +1,21 @@
 /**
- * Google Places API Client - Updated for JavaScript APIs
- * Uses Google Maps JavaScript API instead of REST API to avoid CORS issues
+ * Restaurant API Client - Uses Flask Backend Proxy
+ * All requests go through your Flask API instead of directly to Google
  */
 
-class GooglePlacesAPI {
-    constructor(apiKey) {
-        this.apiKey = apiKey;
-        
-        // Track API usage for cost monitoring
+class RestaurantAPIClient {
+    constructor() {
+        // Track API usage for monitoring
         this.requestCount = {
             search: 0,
             details: 0,
             geocoding: 0
         };
         
-        // Use Flask backend instead of direct Google Maps API
-        this.baseUrl = 'http://localhost:5000';
+        // Use relative URLs - works in both development and production
+        this.baseUrl = '';
         
-        console.log('Google Places API client initialized (using Flask backend)');
+        console.log('Restaurant API client initialized (using Flask backend)');
     }
 
     /**
@@ -54,7 +52,7 @@ class GooglePlacesAPI {
         try {
             this.requestCount.geocoding++;
             
-            const response = await fetch(`${this.baseUrl}/geocode?address=${encodeURIComponent(zipCode + ', USA')}`);
+            const response = await fetch(`${this.baseUrl}${CONFIG.ENDPOINTS.GEOCODE}?address=${encodeURIComponent(zipCode + ', USA')}`);
             const data = await response.json();
             
             if (!response.ok) {
@@ -115,7 +113,7 @@ class GooglePlacesAPI {
         
         // Otherwise, geocode the address using Flask backend
         try {
-            const response = await fetch(`${this.baseUrl}/geocode?address=${encodeURIComponent(cleanLocation)}`);
+            const response = await fetch(`${this.baseUrl}${CONFIG.ENDPOINTS.GEOCODE}?address=${encodeURIComponent(cleanLocation)}`);
             const data = await response.json();
             
             if (!response.ok) {
@@ -155,7 +153,7 @@ class GooglePlacesAPI {
             console.log(`API Cost Tracker - Search calls: ${this.requestCount.search} (~$${(this.requestCount.search * 0.032).toFixed(3)})`);
 
             // Use the enhanced search endpoint with pagination
-            const response = await fetch(`${this.baseUrl}/search_restaurants`, {
+            const response = await fetch(`${this.baseUrl}${CONFIG.ENDPOINTS.SEARCH_RESTAURANTS}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -326,54 +324,43 @@ class GooglePlacesAPI {
     }
 
     /**
-     * Validate API key format (basic check)
-     * @param {string} apiKey - API key to validate
-     * @returns {boolean} True if format looks valid
-     */
-    static validateApiKeyFormat(apiKey) {
-        // Google API keys are typically 39 characters and start with "AIza"
-        return typeof apiKey === 'string' && 
-               apiKey.length >= 35 && 
-               apiKey.startsWith('AIza');
-    }
-
-    /**
-     * Test API key by making a simple request
-     * @param {string} apiKey - API key to test (not used in JavaScript API)
+     * Test API connection by making a simple request to health endpoint
      * @returns {Promise<Object>} Test result with success status
      */
-    static async testApiKey(apiKey) {
-        console.log('Testing API key availability...');
+    static async testConnection() {
+        console.log('Testing API connection...');
         
-        if (!GooglePlacesAPI.validateApiKeyFormat(apiKey)) {
+        try {
+            const response = await fetch(`${CONFIG.ENDPOINTS.HEALTH}`);
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'healthy') {
+                return { success: true, error: null };
+            } else {
+                return {
+                    success: false,
+                    error: 'API health check failed'
+                };
+            }
+        } catch (error) {
             return {
                 success: false,
-                error: 'Invalid API key format. Google API keys should start with "AIza" and be about 39 characters long.'
-            };
-        }
-        
-        // For JavaScript API, we can't directly test the key
-        // The key validation happens when making actual requests
-        if (typeof google !== 'undefined' && google.maps) {
-            console.log('Google Maps JavaScript API is loaded and ready');
-            return { success: true, error: null };
-        } else {
-            return {
-                success: false,
-                error: 'Google Maps JavaScript API not loaded'
+                error: `Connection failed: ${error.message}`
             };
         }
     }
 }
 
-// Make GooglePlacesAPI available globally
+// Make RestaurantAPIClient available globally
 if (typeof window !== 'undefined') {
-    window.GooglePlacesAPI = GooglePlacesAPI;
+    window.RestaurantAPIClient = RestaurantAPIClient;
+    // Keep backward compatibility
+    window.GooglePlacesAPI = RestaurantAPIClient;
 }
 
 // Also export for Node.js environments (if needed for testing)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = GooglePlacesAPI;
+    module.exports = RestaurantAPIClient;
 }
 
-console.log('Google Places API client loaded successfully');
+console.log('Restaurant API client loaded successfully');
