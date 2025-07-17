@@ -111,7 +111,8 @@ const CONFIG = {
         SEARCH_IN_PROGRESS: 'Searching for restaurants...',
         NO_RESULTS: 'No restaurants match the current filters',
         SEARCH_FAILED: 'Search failed. Please try again.',
-        DETAILS_FAILED: 'Failed to load restaurant details'
+        DETAILS_FAILED: 'Failed to load restaurant details',
+        NO_API_KEY: 'API key not configured (handled by Flask backend)'
     },
     
     // Map Configuration

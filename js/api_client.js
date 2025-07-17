@@ -56,7 +56,7 @@ class RestaurantAPIClient {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.error || 'Geocoding failed');
+                throw new Error(data.message || data.error || 'Geocoding failed');
             }
             
             if (data.status === 'OK' && data.results && data.results.length > 0) {
@@ -117,7 +117,7 @@ class RestaurantAPIClient {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.error || 'Geocoding failed');
+                throw new Error(data.message || data.error || 'Geocoding failed');
             }
             
             if (data.status === 'OK' && data.results && data.results.length > 0) {
@@ -168,7 +168,7 @@ class RestaurantAPIClient {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.error || 'Search failed');
+                throw new Error(data.message || data.error || 'Search failed');
             }
             
             if (data.status === 'success') {

@@ -19,13 +19,13 @@
             </div>
         </header>
 
-        <!-- API Configuration Section -->
-        <section class="search-section">
+        <!-- API Configuration Section - Hidden since Flask backend handles API key -->
+        <section class="search-section" style="display: none;">
             <h2> API Configuration</h2>
             <div class="form-group">
                 <label for="apiKey">Google Places API Key</label>
-                <input type="password" id="apiKey" placeholder="Enter your Google Places API key">
-                <small style="color: #6c757d; margin-top: 5px;">Your API key is stored locally and never transmitted to external servers</small>
+                <input type="password" id="apiKey" placeholder="Handled by Flask backend">
+                <small style="color: #6c757d; margin-top: 5px;">API key is handled by Flask backend - no user input needed</small>
             </div>
         </section>
 

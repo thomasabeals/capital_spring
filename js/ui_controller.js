@@ -178,13 +178,8 @@ class UIController {
      * Load saved user preferences
      */
     loadSavedPreferences() {
-        // Load saved API key
-        const savedApiKey = localStorage.getItem(CONFIG.STORAGE_KEYS.API_KEY);
-        if (savedApiKey && this.elements.apiKeyInput) {
-            this.elements.apiKeyInput.value = savedApiKey;
-            this.handleApiKeyChange(savedApiKey);
-        }
-
+        // No API key loading needed - Flask backend handles API key
+        
         // Load saved preferences
         const savedPrefs = localStorage.getItem(CONFIG.STORAGE_KEYS.USER_PREFERENCES);
         if (savedPrefs) {
@@ -232,22 +227,12 @@ class UIController {
     }
 
     /**
-     * Handle API key changes
+     * Handle API key changes - Not needed for Flask backend
      * @param {string} apiKey - New API key value
      */
     handleApiKeyChange(apiKey) {
-        const trimmedKey = apiKey.trim();
-        
-        if (trimmedKey) {
-            localStorage.setItem(CONFIG.STORAGE_KEYS.API_KEY, trimmedKey);
-            
-            // Notify parent app about API key change
-            if (window.app && window.app.setApiKey) {
-                window.app.setApiKey(trimmedKey);
-            }
-            
-            console.log('API key updated');
-        }
+        // No API key handling needed - Flask backend manages API key
+        console.log('API key input ignored - Flask backend handles authentication');
     }
 
     /**
@@ -294,8 +279,8 @@ class UIController {
         return {
             query: this.elements.searchQuery?.value?.trim() || '',
             location: this.elements.searchLocation?.value?.trim() || '',
-            radius: parseInt(this.elements.searchRadius?.value) || CONFIG.DEFAULTS.SEARCH_RADIUS,
-            apiKey: this.elements.apiKeyInput?.value?.trim() || ''
+            radius: parseInt(this.elements.searchRadius?.value) || CONFIG.DEFAULTS.SEARCH_RADIUS
+            // No apiKey needed - Flask backend handles API key
         };
     }
 
@@ -305,9 +290,7 @@ class UIController {
      * @returns {Object} Validation result
      */
     validateSearchData(searchData) {
-        if (!searchData.apiKey) {
-            return { valid: false, message: CONFIG.MESSAGES.NO_API_KEY };
-        }
+        // No API key validation needed - Flask backend handles API key
         
         if (!searchData.query || searchData.query.length < CONFIG.VALIDATION.MIN_QUERY_LENGTH) {
             return { valid: false, message: CONFIG.MESSAGES.NO_SEARCH_QUERY };
