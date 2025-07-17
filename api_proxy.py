@@ -19,41 +19,92 @@ logger = logging.getLogger(__name__)
 
 logger.info("=== STARTING FLASK APP ===")
 
-app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
-CORS(app)  # Enable CORS for all routes
+try:
+    app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
+    CORS(app)  # Enable CORS for all routes
+    logger.info("✅ Flask app and CORS initialized successfully")
+except Exception as e:
+    logger.error(f"❌ Failed to initialize Flask app: {str(e)}", exc_info=True)
+    raise
 
 # Configure static file serving
-from flask import send_from_directory
+from flask import send_from_directory, abort
 
 @app.route('/css/<path:filename>')
 def serve_css(filename):
-    return send_from_directory('css', filename)
+    try:
+        return send_from_directory('css', filename)
+    except Exception as e:
+        logger.error(f"❌ CSS file serving error: {str(e)}")
+        abort(404)
 
 @app.route('/js/<path:filename>')
 def serve_js(filename):
-    return send_from_directory('js', filename)
+    try:
+        return send_from_directory('js', filename)
+    except Exception as e:
+        logger.error(f"❌ JS file serving error: {str(e)}")
+        abort(404)
 
 @app.route('/static/<path:filename>')
 def serve_static_files(filename):
-    # Serve any static files from root directory
-    return send_from_directory('.', filename)
+    try:
+        # Serve any static files from root directory
+        return send_from_directory('.', filename)
+    except Exception as e:
+        logger.error(f"❌ Static file serving error: {str(e)}")
+        abort(404)
 
 @app.route('/<filename>')
 def serve_root_files(filename):
-    # Only serve specific file types from root directory to avoid conflicts
-    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.txt', '.xml', '.json')):
-        return send_from_directory('.', filename)
-    # If it's not a static file, return 404
-    from flask import abort
-    abort(404)
+    try:
+        # Only serve specific file types from root directory to avoid conflicts
+        if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.txt', '.xml', '.json')):
+            return send_from_directory('.', filename)
+        # If it's not a static file, return 404
+        abort(404)
+    except Exception as e:
+        logger.error(f"❌ Root file serving error: {str(e)}")
+        abort(404)
 
 # Your Google API Key here (keep it secret!)
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
 
 # Check if API key is set
 if not GOOGLE_PLACES_API_KEY:
-    print("⚠️  WARNING: GOOGLE_PLACES_API_KEY environment variable not set!")
-    print("   Set it in Railway dashboard or your local environment")
+    logger.error("⚠️  CRITICAL: GOOGLE_PLACES_API_KEY environment variable not set!")
+    logger.error("   Set it in Railway dashboard or your local environment")
+    logger.error("   App will return 500 errors for all API calls without this key")
+else:
+    logger.info("✅ GOOGLE_PLACES_API_KEY is configured")
+
+# Global error handler
+@app.errorhandler(500)
+def internal_server_error(error):
+    logger.error(f"500 Internal Server Error: {error}")
+    return jsonify({
+        'status': 'error',
+        'message': 'Internal server error occurred',
+        'error_type': 'server_error'
+    }), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    logger.warning(f"404 Not Found: {error}")
+    return jsonify({
+        'status': 'error',
+        'message': 'Endpoint not found',
+        'error_type': 'not_found'
+    }), 404
+
+@app.errorhandler(400)
+def bad_request_error(error):
+    logger.warning(f"400 Bad Request: {error}")
+    return jsonify({
+        'status': 'error',
+        'message': 'Bad request',
+        'error_type': 'bad_request'
+    }), 400
 
 # Price level configuration
 PRICE_LEVELS = {
@@ -377,13 +428,40 @@ def estimate_revenue_tier(restaurant_data):
 def search_restaurants_endpoint():
     """Enhanced restaurant search endpoint with pagination support"""
     try:
+        logger.info("🔍 Search restaurants endpoint called")
+        
+        # Check if API key is available
+        if not GOOGLE_PLACES_API_KEY:
+            logger.error("API key not configured")
+            return jsonify({
+                'status': 'error',
+                'message': 'API key not configured on server',
+                'error_type': 'configuration_error'
+            }), 500
+        
+        # Parse request data
         data = request.get_json()
+        if not data:
+            logger.warning("No JSON data provided")
+            return jsonify({
+                'status': 'error',
+                'message': 'No JSON data provided',
+                'error_type': 'bad_request'
+            }), 400
+            
         query = data.get('query', '')
         location = data.get('location', '')
         max_results = data.get('max_results', 60)
         
+        logger.info(f"Search params: query='{query}', location='{location}', max_results={max_results}")
+        
         if not query:
-            return jsonify({'error': 'Query parameter required'}), 400
+            logger.warning("Missing query parameter")
+            return jsonify({
+                'status': 'error',
+                'message': 'Query parameter required',
+                'error_type': 'missing_parameter'
+            }), 400
         
         # Search for restaurants with pagination
         search_result = search_restaurants(query, location, max_results)
@@ -445,12 +523,15 @@ def search_restaurants_endpoint():
         
         print(f"📤 Full response keys: {list(response_data.keys())}")
         
+        logger.info(f"✅ Search completed successfully: {len(detailed_results)} results")
         return jsonify(response_data)
         
     except Exception as e:
+        logger.error(f"❌ Search endpoint error: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': f'Search failed: {str(e)}',
+            'error_type': 'search_error'
         }), 500
 
 
@@ -458,33 +539,82 @@ def search_restaurants_endpoint():
 @app.route('/geocode')
 def geocode():
     try:
+        logger.info("🌍 Geocode endpoint called")
+        
+        # Check if API key is available
+        if not GOOGLE_PLACES_API_KEY:
+            logger.error("API key not configured for geocoding")
+            return jsonify({
+                'status': 'error',
+                'message': 'API key not configured on server',
+                'error_type': 'configuration_error'
+            }), 500
+        
         address = request.args.get('address')
         if not address:
-            return jsonify({'error': 'Address parameter required'}), 400
-            
+            logger.warning("Missing address parameter")
+            return jsonify({
+                'status': 'error',
+                'message': 'Address parameter required',
+                'error_type': 'missing_parameter'
+            }), 400
+        
+        logger.info(f"Geocoding address: {address}")
+        
         response = requests.get(
             'https://maps.googleapis.com/maps/api/geocode/json',
             params={'address': address, 'key': GOOGLE_PLACES_API_KEY},
             timeout=10
         )
         response.raise_for_status()  # Raise exception for bad status codes
-        return jsonify(response.json())
+        
+        result = response.json()
+        logger.info(f"✅ Geocoding successful: {result.get('status', 'unknown')}")
+        return jsonify(result)
         
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'API request failed: {str(e)}'}), 500
+        logger.error(f"❌ Geocoding API request failed: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Geocoding API request failed: {str(e)}',
+            'error_type': 'api_error'
+        }), 500
     except Exception as e:
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        logger.error(f"❌ Geocoding server error: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Geocoding server error: {str(e)}',
+            'error_type': 'server_error'
+        }), 500
 
 @app.route('/places')
 def places():
     try:
+        logger.info("🏪 Places endpoint called")
+        
+        # Check if API key is available
+        if not GOOGLE_PLACES_API_KEY:
+            logger.error("API key not configured for places search")
+            return jsonify({
+                'status': 'error',
+                'message': 'API key not configured on server',
+                'error_type': 'configuration_error'
+            }), 500
+        
         query = request.args.get('query')
         location = request.args.get('location')
         radius = request.args.get('radius', '50000')  # Default radius
         
         if not query or not location:
-            return jsonify({'error': 'Query and location parameters required'}), 400
-            
+            logger.warning("Missing query or location parameters")
+            return jsonify({
+                'status': 'error',
+                'message': 'Query and location parameters required',
+                'error_type': 'missing_parameters'
+            }), 400
+        
+        logger.info(f"Places search: query='{query}', location='{location}', radius={radius}")
+        
         response = requests.get(
             'https://maps.googleapis.com/maps/api/place/textsearch/json',
             params={
@@ -507,14 +637,53 @@ def places():
                 restaurant['website'] = maps_link
                 restaurant['keywords_found'] = 'View on Maps'
         
+        logger.info(f"✅ Places search successful: {len(data.get('results', []))} results")
         return jsonify(data)
         
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'API request failed: {str(e)}'}), 500
+        logger.error(f"❌ Places API request failed: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Places API request failed: {str(e)}',
+            'error_type': 'api_error'
+        }), 500
     except Exception as e:
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        logger.error(f"❌ Places server error: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Places server error: {str(e)}',
+            'error_type': 'server_error'
+        }), 500
 
 @app.route('/health')
 def health():
-    logger.info("Health route accessed!")
-    return {'status': 'healthy', 'service': 'capital_spring_api'}, 200
+    try:
+        logger.info("💚 Health endpoint called")
+        
+        # Check system health
+        health_data = {
+            'status': 'healthy',
+            'service': 'capital_spring_api',
+            'timestamp': time.time(),
+            'api_key_configured': bool(GOOGLE_PLACES_API_KEY)
+        }
+        
+        logger.info("✅ Health check successful")
+        return jsonify(health_data), 200
+        
+    except Exception as e:
+        logger.error(f"❌ Health check error: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'service': 'capital_spring_api',
+            'message': f'Health check failed: {str(e)}',
+            'error_type': 'health_check_error'
+        }), 500
+
+# Add startup logging
+logger.info("🚀 Flask app configuration complete")
+logger.info(f"📁 Template folder: {app.template_folder}")
+logger.info(f"📁 Static folder: {app.static_folder}")
+logger.info(f"🔑 API key configured: {bool(GOOGLE_PLACES_API_KEY)}")
+logger.info("🌐 All endpoints configured with error handling")
+logger.info("✅ App ready for Gunicorn deployment")
