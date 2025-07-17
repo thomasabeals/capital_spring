@@ -327,11 +327,6 @@ def estimate_revenue_tier(restaurant_data):
     else:
         return {"tier": "Low", "estimated_annual": "<$500K", "confidence": "Low"}
 
-# In your Flask app file
-from webscraper import WebScraper
-
-# Initialize scraper
-scraper = WebScraper()
 
 @app.route('/search_restaurants', methods=['POST'])
 def search_restaurants_endpoint():
@@ -413,45 +408,7 @@ def search_restaurants_endpoint():
             'message': str(e)
         }), 500
 
-@app.route('/scan_website', methods=['POST'])
-def scan_website_endpoint():
-    """Scan individual restaurant website for keywords"""
-    try:
-        data = request.get_json()
-        website_url = data.get('website_url')
-        restaurant_name = data.get('restaurant_name', 'Unknown')
-        
-        if not website_url:
-            return jsonify({'status': 'error', 'message': 'No website URL provided'}), 400
-        
-        # Perform website scraping here
-        result = scraper.scrape_website(website_url)
-        
-        return jsonify({
-            'status': 'success',
-            'restaurant_name': restaurant_name,
-            'website_url': website_url,
-            'keywords_found': result.get('keywords_found', []),
-            'keyword_count': result.get('keyword_count', 0),
-            'scrape_status': result.get('status', 'unknown')
-        })
-    
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': f'Scraping failed: {str(e)}'
-        }), 500
 
-@app.route('/api/scrape-website', methods=['POST'])
-def scrape_website():
-    data = request.get_json()
-    url = data.get('url')
-    
-    if not url:
-        return jsonify({'error': 'URL required'}), 400
-    
-    result = scraper.scrape_website(url)
-    return jsonify(result)
 
 @app.route('/geocode')
 def geocode():
