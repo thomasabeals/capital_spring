@@ -64,6 +64,12 @@ class RestaurantMAApp {
             const success = this.mapManager.initializeMap();
             if (success) {
                 console.log('Map initialized successfully');
+                
+                // If we have restaurant data, update map markers
+                if (this.filteredData && this.filteredData.length > 0) {
+                    console.log('🗺️ Updating map with existing restaurant data');
+                    this.mapManager.updateMarkers(this.filteredData);
+                }
             }
         } else {
             console.log('Google Maps API not ready yet - will initialize when loaded');
@@ -193,7 +199,9 @@ class RestaurantMAApp {
             console.log('🗺️ Main: Updating map with', this.filteredData.length, 'restaurants');
             this.mapManager.updateMarkers(this.filteredData);
         } else {
-            console.log('⚠️ Main: Map not initialized - skipping map update');
+            console.log('⚠️ Main: Map not initialized - will update when Google Maps loads');
+            // Try to initialize map again in case Google Maps API loaded recently
+            this.initializeMap();
         }
         
         console.log('All displays updated');

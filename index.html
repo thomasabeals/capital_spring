@@ -216,9 +216,62 @@
         </footer>
     </div>
 
-    <!-- Google Maps API removed - using Flask backend instead of direct API calls -->
-    <!-- Our modular JavaScript files - we'll add these later -->
+    <!-- Secure Google Maps API loading -->
+    <script>
+        // Load Google Maps securely via Flask backend
+        async function loadGoogleMaps() {
+            try {
+                console.log('🗺️ Loading Google Maps securely via Flask backend...');
+                
+                const response = await fetch('/api-key');
+                const data = await response.json();
+                
+                if (response.ok && data.key) {
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initMap`;
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                    
+                    console.log('✅ Google Maps API loaded securely');
+                } else {
+                    console.error('❌ Failed to get API key:', data.message || 'Unknown error');
+                    // Maps will gracefully fail but app will still work
+                }
+            } catch (error) {
+                console.error('❌ Failed to load Google Maps:', error);
+                // Maps will gracefully fail but app will still work
+            }
+        }
+        
+        // Global initMap callback for Google Maps
+        window.initMap = function() {
+            console.log('🗺️ Google Maps API loaded and ready');
+            
+            // Initialize the map now that Google Maps API is ready
+            if (window.app && window.app.mapManager) {
+                const success = window.app.mapManager.initializeMap();
+                if (success) {
+                    console.log('✅ Map initialized successfully');
+                    
+                    // If we have restaurant data, update the map markers
+                    if (window.app.filteredData && window.app.filteredData.length > 0) {
+                        console.log('🗺️ Updating map with existing restaurant data');
+                        window.app.mapManager.updateMarkers(window.app.filteredData);
+                    }
+                } else {
+                    console.error('❌ Failed to initialize map');
+                }
+            } else {
+                console.warn('⚠️ App not ready yet, will initialize map later');
+            }
+        };
+        
+        // Load Google Maps when page loads
+        window.addEventListener('load', loadGoogleMaps);
+    </script>
     
+    <!-- Our modular JavaScript files -->
     <script src="js/config.js"></script>
     <script src="js/api_client.js"></script>
     <script src="js/data_analyzer.js"></script>

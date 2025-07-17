@@ -680,6 +680,35 @@ def health():
             'error_type': 'health_check_error'
         }), 500
 
+@app.route('/api-key')
+def get_api_key():
+    """Securely provide API key for Google Maps without exposing it in HTML"""
+    try:
+        logger.info("🔑 API key endpoint called")
+        
+        # Check if API key is available
+        if not GOOGLE_PLACES_API_KEY:
+            logger.error("API key not configured")
+            return jsonify({
+                'status': 'error',
+                'message': 'API key not configured on server',
+                'error_type': 'configuration_error'
+            }), 500
+        
+        # Return API key securely
+        logger.info("✅ API key provided securely")
+        return jsonify({
+            'key': GOOGLE_PLACES_API_KEY
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"❌ API key endpoint error: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'API key retrieval failed: {str(e)}',
+            'error_type': 'server_error'
+        }), 500
+
 # Add startup logging
 logger.info("🚀 Flask app configuration complete")
 logger.info(f"📁 Template folder: {app.template_folder}")

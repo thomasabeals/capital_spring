@@ -11,7 +11,8 @@ const CONFIG = {
         SEARCH_RESTAURANTS: '/search_restaurants',
         GEOCODE: '/geocode',
         PLACES: '/places',
-        HEALTH: '/health'
+        HEALTH: '/health',
+        API_KEY: '/api-key'
     },
     
     // Default Settings
