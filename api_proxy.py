@@ -19,8 +19,33 @@ logger = logging.getLogger(__name__)
 
 logger.info("=== STARTING FLASK APP ===")
 
-app = Flask(__name__, template_folder='.', static_folder='.')
+app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
 CORS(app)  # Enable CORS for all routes
+
+# Configure static file serving
+from flask import send_from_directory
+
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory('css', filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('js', filename)
+
+@app.route('/static/<path:filename>')
+def serve_static_files(filename):
+    # Serve any static files from root directory
+    return send_from_directory('.', filename)
+
+@app.route('/<filename>')
+def serve_root_files(filename):
+    # Only serve specific file types from root directory to avoid conflicts
+    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.txt', '.xml', '.json')):
+        return send_from_directory('.', filename)
+    # If it's not a static file, return 404
+    from flask import abort
+    abort(404)
 
 # Your Google API Key here (keep it secret!)
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
