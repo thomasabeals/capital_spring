@@ -516,12 +516,3 @@ def places():
 def health():
     return jsonify({'status': 'healthy', 'message': 'M&A Dashboard API is running'})
 
-if __name__ == '__main__':
-    print("Starting M&A Dashboard API server...")
-    print("Geocoding endpoint: http://localhost:5000/geocode")
-    print("Places endpoint: http://localhost:5000/places")
-    print("Enhanced search endpoint: http://localhost:5000/search_restaurants")
-    print("Web scraping endpoint: http://localhost:5000/api/scrape-website")
-    print("Health check: http://localhost:5000/health")
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
