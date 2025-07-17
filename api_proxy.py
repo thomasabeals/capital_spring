@@ -472,4 +472,3 @@ def places():
 @app.route('/health')
 def health():
     return jsonify({'status': 'healthy', 'message': 'M&A Dashboard API is running'})
-
